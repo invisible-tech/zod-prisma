@@ -5,7 +5,7 @@ import { generatorHandler } from '@prisma/generator-helper'
 import { SemicolonPreference } from 'typescript'
 import { configSchema, PrismaOptions } from './config'
 import { populateModelFile, generateBarrelFile } from './generator'
-import { Project } from 'ts-morph'
+import { Project, QuoteKind } from 'ts-morph'
 
 generatorHandler({
 	onManifest() {
@@ -16,7 +16,11 @@ generatorHandler({
 		}
 	},
 	onGenerate(options) {
-		const project = new Project()
+		const project = new Project({
+			manipulationSettings: {
+				quoteKind: QuoteKind.Single,
+			},
+		})
 
 		const models = options.dmmf.datamodel.models
 

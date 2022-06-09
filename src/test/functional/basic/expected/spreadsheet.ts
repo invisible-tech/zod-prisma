@@ -14,3 +14,17 @@ export const SpreadsheetModel = z.object({
   created: z.date(),
   updated: z.date(),
 })
+
+/**
+ * Prisma Model Select Zod Schema
+ *
+ */
+
+export const SpreadsheetModelSelect = z.object({
+  id: z.boolean().optional(),
+  filename: z.boolean().optional(),
+  author: z.boolean().optional(),
+  contents: z.boolean().optional(),
+  created: z.boolean().optional(),
+  updated: z.boolean().optional(),
+})

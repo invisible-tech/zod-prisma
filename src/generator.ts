@@ -69,6 +69,8 @@ export const writeImportsForModel = (
 						filteredFields.flatMap((f) => [
 							`Complete${f.type}`,
 							relatedModelName(f.type),
+							`CompleteSelect${f.type}`,
+							relatedModelName(f.type, true),
 						])
 					)
 				),
@@ -158,6 +160,46 @@ export const generateSchemaForModel = (
 			},
 		],
 	})
+
+	sourceFile.addStatements((writer) =>
+		writeArray(writer, ['', '/**', ` * Prisma Model Select Zod Schema`, ' *', ' */'])
+	)
+
+	sourceFile.addVariableStatement({
+		declarationKind: VariableDeclarationKind.Const,
+		isExported: true,
+		leadingTrivia: (writer) => writer.blankLineIfLastNot(),
+		declarations: [
+			{
+				name: `${modelName(model.name)}Select`,
+				initializer(writer) {
+					writer
+						.write('z.object(')
+						.inlineBlock(() => {
+							model.fields
+								.filter((f) => f.kind !== 'object')
+								.forEach((field) => {
+									writeArray(writer, getJSDocs(field.documentation))
+									writer
+										.write(
+											`${field.name}: ${getZodConstructor({
+												...field,
+												kind: 'scalar',
+												type: 'OptionalBoolean',
+												isList: false,
+												documentation: undefined,
+												isRequired: true,
+											})}`
+										)
+										.write(',')
+										.newLine()
+								})
+						})
+						.write(')')
+				},
+			},
+		],
+	})
 }
 
 export const generateRelatedSchemaForModel = (
@@ -178,6 +220,17 @@ export const generateRelatedSchemaForModel = (
 			hasQuestionToken: !f.isRequired,
 			name: f.name,
 			type: `Complete${f.type}${f.isList ? '[]' : ''}${!f.isRequired ? ' | null' : ''}`,
+		})),
+	})
+
+	sourceFile.addInterface({
+		name: `CompleteSelect${model.name}`,
+		isExported: true,
+		extends: [`z.infer<typeof ${modelName(model.name)}Select>`],
+		properties: relationFields.map((f) => ({
+			hasQuestionToken: true,
+			name: f.name,
+			type: `{ select: CompleteSelect${f.type}} | boolean`,
 		})),
 	})
 
@@ -214,6 +267,51 @@ export const generateRelatedSchemaForModel = (
 											field,
 											relatedModelName
 										)}`
+									)
+									.write(',')
+									.newLine()
+							})
+						})
+						.write('))')
+				},
+			},
+		],
+	})
+
+	sourceFile.addStatements((writer) =>
+		writeArray(writer, [
+			'',
+			'/**',
+			` * ${relatedModelName(
+				model.name,
+				true
+			)} contains a boolean type for all fields of the model and all its relations`,
+			' *',
+			' * NOTE: Lazy required in case of potential circular dependencies within schema',
+			' */',
+		])
+	)
+
+	sourceFile.addVariableStatement({
+		declarationKind: VariableDeclarationKind.Const,
+		isExported: true,
+		declarations: [
+			{
+				name: `${relatedModelName(model.name)}Select`,
+				type: `z.ZodSchema<CompleteSelect${model.name}>`,
+				initializer(writer) {
+					writer
+						.write(`z.lazy(() => ${modelName(model.name)}Select.extend(`)
+						.inlineBlock(() => {
+							relationFields.forEach((field) => {
+								writeArray(writer, getJSDocs(field.documentation))
+
+								writer
+									.write(
+										`${field.name}: z.object({select: ${getZodConstructor(
+											{ ...field, isList: false, isRequired: true },
+											(f) => relatedModelName(f, true)
+										)}}).or(z.boolean())`
 									)
 									.write(',')
 									.newLine()

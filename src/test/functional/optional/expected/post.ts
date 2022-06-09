@@ -1,13 +1,27 @@
 import * as z from "zod"
-import { CompleteUser, RelatedUserModel } from "./index"
+import { CompleteUser, RelatedUserModel, CompleteSelectUser, RelatedUserModelSelect } from "./index"
 
 export const PostModel = z.object({
   id: z.number().int(),
   authorId: z.number().int(),
 })
 
+/**
+ * Prisma Model Select Zod Schema
+ *
+ */
+
+export const PostModelSelect = z.object({
+  id: z.boolean().optional(),
+  authorId: z.boolean().optional(),
+})
+
 export interface CompletePost extends z.infer<typeof PostModel> {
   author?: CompleteUser | null
+}
+
+export interface CompleteSelectPost extends z.infer<typeof PostModelSelect> {
+  author?: { select: CompleteSelectUser } | boolean
 }
 
 /**
@@ -17,4 +31,13 @@ export interface CompletePost extends z.infer<typeof PostModel> {
  */
 export const RelatedPostModel: z.ZodSchema<CompletePost> = z.lazy(() => PostModel.extend({
   author: RelatedUserModel.nullish(),
+}))
+
+/**
+ * RelatedPostModelSelect contains a boolean type for all fields of the model and all its relations
+ *
+ * NOTE: Lazy required in case of potential circular dependencies within schema
+ */
+export const RelatedPostModelSelect: z.ZodSchema<CompleteSelectPost> = z.lazy(() => PostModelSelect.extend({
+  author: z.object({ select: RelatedUserModelSelect }).or(z.boolean()),
 }))

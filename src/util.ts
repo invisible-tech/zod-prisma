@@ -10,14 +10,19 @@ export const useModelNames = ({ modelCase, modelSuffix, relationModel }: Config)
 		if (modelCase === 'camelCase') {
 			name = name.slice(0, 1).toLowerCase() + name.slice(1)
 		}
-		return `${prefix}${name}${modelSuffix}`
+		return name.includes('Select') ? `${prefix}${name}` : `${prefix}${name}${modelSuffix}`
 	}
 
 	return {
 		modelName: (name: string) => formatModelName(name, relationModel === 'default' ? '_' : ''),
-		relatedModelName: (name: string | DMMF.SchemaEnum | DMMF.OutputType | DMMF.SchemaArg) =>
+		relatedModelName: (
+			name: string | DMMF.SchemaEnum | DMMF.OutputType | DMMF.SchemaArg,
+			select?: boolean
+		) =>
 			formatModelName(
-				relationModel === 'default' ? name.toString() : `Related${name.toString()}`
+				relationModel === 'default'
+					? `${name.toString()}${select ? 'SchemaSelect' : ''}`
+					: `Related${name.toString()}${select ? 'ModelSelect' : ''}`
 			),
 	}
 }

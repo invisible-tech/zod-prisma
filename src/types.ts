@@ -35,6 +35,9 @@ export const getZodConstructor = (
 			case 'Boolean':
 				zodType = 'z.boolean()'
 				break
+			case 'OptionalBoolean':
+				zodType = 'z.boolean().optional()'
+				break
 			// TODO: Proper type for bytes fields
 			case 'Bytes':
 				zodType = 'z.unknown()'
