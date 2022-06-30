@@ -1,6 +1,6 @@
 {
 	"name": "@invisible/zod-prisma",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"description": "A Prisma generator that creates Zod schemas for all of your models",
 	"license": "MIT",
 	"author": "Invisible Technologies Inc. <engineering@invisible.email>",

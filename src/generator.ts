@@ -311,7 +311,7 @@ export const generateRelatedSchemaForModel = (
 										`${field.name}: z.object({select: ${getZodConstructor(
 											{ ...field, isList: false, isRequired: true },
 											(f) => relatedModelName(f, true)
-										)}}).or(z.boolean())`
+										)}}).or(z.boolean()).optional()`
 									)
 									.write(',')
 									.newLine()
